@@ -1,7 +1,7 @@
 const message = document.getElementById("message");
 const next = document.getElementById("next");
 
-const messages = ["えいた、、、", "あいつは、、、", "がちで、、、","やばい"];
+const messages = ["えいた、、、", "あいつは、、、", "がちで、、、","やばい、、、"];
 
 let index = 0;
 
