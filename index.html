@@ -1,12 +1,1097 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <title>message</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#123b2a">
+<title>投手成績計算ツール</title>
+
+<style>
+:root {
+  --green: #176b45;
+  --dark: #123b2a;
+  --bg: #f2f5f3;
+  --card: #fff;
+  --border: #dce5df;
+  --text: #1d2922;
+  --muted: #68776d;
+  --red: #c0392b;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+header {
+  background: var(--dark);
+  color: white;
+  padding: 22px 16px;
+  text-align: center;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+header p {
+  margin: 8px 0 0;
+  font-size: 0.9rem;
+  color: #d4e8db;
+}
+
+main {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 14px;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 14px;
+}
+
+h2 {
+  font-size: 1.1rem;
+  margin: 0 0 14px;
+}
+
+.buttons {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+button,
+.file-label {
+  min-height: 44px;
+  padding: 10px 7px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: white;
+  color: var(--text);
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+}
+
+button:active,
+.file-label:active {
+  transform: scale(0.98);
+}
+
+button.primary,
+.file-label.primary {
+  background: var(--green);
+  color: white;
+  border-color: var(--green);
+}
+
+button.danger {
+  color: var(--red);
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.stat {
+  background: #f5f8f6;
+  border: 1px solid #e3ebe5;
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.stat-label {
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.stat-value {
+  font-size: 1.55rem;
+  font-weight: 800;
+  margin-top: 5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.counts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 14px;
+  margin-top: 12px;
+}
+
+.count-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 9px 0;
+  border-bottom: 1px solid #edf1ee;
+}
+
+.count-row span:last-child {
+  font-weight: 700;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.actions button,
+.file-label {
+  flex: 1;
+}
+
+.file-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+input[type="file"] {
+  display: none;
+}
+
+.hint {
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: var(--muted);
+  margin: 12px 0 0;
+}
+
+.history {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.history li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid #edf1ee;
+}
+
+.history small {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+}
+
+.history button {
+  min-height: 34px;
+  padding: 5px 10px;
+  font-size: 0.8rem;
+}
+
+.status {
+  margin-top: 10px;
+  font-size: 0.88rem;
+  overflow-wrap: anywhere;
+}
+
+.saved {
+  color: var(--green);
+  font-size: 0.8rem;
+  margin-top: 10px;
+}
+
+@media (min-width: 600px) {
+  .buttons {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .stats {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .counts {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+</style>
 </head>
+
 <body>
-  <p id="massage">えいた、、、</p>
-  <button id="next">次へ</button>
-  <script src="script.js"></script>
+
+<header>
+  <h1>⚾ 投手成績計算ツール</h1>
+  <p>投手成績を記録・自動計算</p>
+</header>
+
+<main>
+
+  <section class="card">
+    <h2>打者との対戦結果</h2>
+
+    <div class="buttons">
+      <button data-result="OUT">アウト（凡打）</button>
+      <button data-result="K">三振</button>
+      <button data-result="BB">四球</button>
+      <button data-result="HBP">死球</button>
+
+      <button data-result="1B">単打を打たれた</button>
+      <button data-result="2B">二塁打を打たれた</button>
+      <button data-result="3B">三塁打を打たれた</button>
+      <button data-result="HR">本塁打を打たれた</button>
+
+      <button data-result="E">失策出塁</button>
+      <button data-result="FC">野選出塁</button>
+      <button data-result="SF">犠牲フライ</button>
+      <button data-result="SH">犠牲バント</button>
+
+      <button data-result="WP">暴投</button>
+      <button data-result="BK">ボーク</button>
+      <button data-result="PK">牽制アウト</button>
+    </div>
+
+    <p class="hint">
+      打者との対戦結果を記録すると、投手成績が自動更新されます。
+      自責点・失点は下のボタンから別途入力してください。
+    </p>
+
+    <div class="actions">
+      <button id="addER">自責点を追加</button>
+      <button id="addR">失点を追加</button>
+      <button id="addIP">投球回を追加</button>
+    </div>
+
+    <p class="hint">
+      投球回の直接追加は、対戦結果から計算したアウト数とは別に加算されます。
+      入力形式は 1、1.1、1.2 です。
+    </p>
+  </section>
+
+  <section class="card">
+    <h2>投手成績</h2>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-label">防御率（ERA）</div>
+        <div class="stat-value" id="era">—</div>
+      </div>
+
+      <div class="stat">
+        <div class="stat-label">WHIP</div>
+        <div class="stat-value" id="whip">—</div>
+      </div>
+
+      <div class="stat">
+        <div class="stat-label">奪三振</div>
+        <div class="stat-value" id="strikeouts">0</div>
+      </div>
+
+      <div class="stat">
+        <div class="stat-label">投球回</div>
+        <div class="stat-value" id="ip">0.0</div>
+      </div>
+    </div>
+
+    <div class="counts" id="counts"></div>
+  </section>
+
+  <section class="card">
+    <h2>記録履歴</h2>
+
+    <ul class="history" id="history">
+      <li>まだ記録がありません。</li>
+    </ul>
+
+    <div class="actions">
+      <button id="undo">最後を取り消す</button>
+      <button id="reset" class="danger">全削除</button>
+    </div>
+
+    <p class="saved" id="savedStatus">
+      自動保存の準備中...
+    </p>
+  </section>
+
+  <section class="card">
+    <h2>CSVの保存・読み込み</h2>
+
+    <div class="actions">
+      <button class="primary" id="export">CSVを保存</button>
+
+      <label class="file-label primary" for="csvFile">
+        CSVを読み込む
+      </label>
+
+      <input
+        type="file"
+        id="csvFile"
+        accept=".csv,text/csv"
+      >
+    </div>
+
+    <p class="hint">
+      CSVを読み込むと現在の記録が置き換えられます。
+      自動保存されている記録も上書きされるため、
+      必要なら先にCSVを保存してください。
+    </p>
+
+    <div id="status" class="status" role="status" aria-live="polite"></div>
+  </section>
+
+</main>
+
+<script>
+"use strict";
+
+// ローカル保存用のキー
+const STORAGE_KEY = "baseball_pitcher_stats_v1";
+
+const names = {
+  OUT: "アウト（凡打）",
+  K: "三振",
+  BB: "四球",
+  HBP: "死球",
+  "1B": "単打を打たれた",
+  "2B": "二塁打を打たれた",
+  "3B": "三塁打を打たれた",
+  HR: "本塁打を打たれた",
+  E: "失策出塁",
+  FC: "野選出塁",
+  SF: "犠牲フライ",
+  SH: "犠牲バント",
+  WP: "暴投",
+  BK: "ボーク",
+  PK: "牽制アウト",
+  ER: "自責点",
+  R: "失点",
+  IP: "投球回追加"
+};
+
+const validResults = new Set(Object.keys(names));
+
+let records = [];
+
+// ============================
+// ローカル保存
+// ============================
+
+function saveLocal() {
+  try {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify(records)
+    );
+
+    document.getElementById("savedStatus").textContent =
+      "✓ このブラウザに自動保存済み";
+
+    return true;
+  } catch (error) {
+    document.getElementById("savedStatus").textContent =
+      "⚠ 自動保存できません。CSVでバックアップしてください。";
+
+    return false;
+  }
+}
+
+function loadLocal() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+
+    if (!saved) {
+      records = [];
+      return;
+    }
+
+    const parsed = JSON.parse(saved);
+
+    if (!Array.isArray(parsed)) {
+      throw new Error("保存データの形式が違います。");
+    }
+
+    records = parsed.filter(record => {
+      if (
+        !record ||
+        !validResults.has(record.result)
+      ) {
+        return false;
+      }
+
+      if (
+        record.result === "IP" &&
+        (!Number.isInteger(record.outs) || record.outs < 1)
+      ) {
+        return false;
+      }
+
+      return true;
+    });
+
+  } catch (error) {
+    records = [];
+
+    document.getElementById("savedStatus").textContent =
+      "⚠ 保存データを読み込めませんでした。";
+  }
+}
+
+// ============================
+// 記録追加
+// ============================
+
+function addRecord(result, extra = {}) {
+  records.push({
+    result,
+    time: new Date().toISOString(),
+    ...extra
+  });
+
+  render();
+  showStatus("");
+}
+
+document.querySelectorAll("[data-result]").forEach(button => {
+  button.addEventListener("click", () => {
+    addRecord(button.dataset.result);
+  });
+});
+
+// 自責点の追加
+document.getElementById("addER").addEventListener("click", () => {
+  addNumber("ER", "自責点を何点追加しますか？");
+});
+
+// 失点の追加
+document.getElementById("addR").addEventListener("click", () => {
+  addNumber("R", "失点を何点追加しますか？");
+});
+
+function addNumber(result, message) {
+  const input = prompt(message, "1");
+
+  if (input === null) return;
+
+  const number = Number(input);
+
+  if (
+    !Number.isInteger(number) ||
+    number < 1 ||
+    number > 999
+  ) {
+    showStatus("1〜999の整数を入力してください。", true);
+    return;
+  }
+
+  for (let i = 0; i < number; i++) {
+    records.push({
+      result,
+      time: new Date().toISOString()
+    });
+  }
+
+  render();
+
+  showStatus(
+    `${names[result]}を${number}点追加しました。`
+  );
+}
+
+// 投球回を直接追加
+document.getElementById("addIP").addEventListener("click", () => {
+  const input = prompt(
+    "追加する投球回を入力してください。\n" +
+    "例：1＝1回、1.1＝1回1アウト、1.2＝1回2アウト"
+  );
+
+  if (input === null) return;
+
+  const match = input.trim().match(/^(\d+)(?:\.([012]))?$/);
+
+  if (!match) {
+    showStatus(
+      "1、1.1、1.2 の形式で入力してください。",
+      true
+    );
+    return;
+  }
+
+  const outs =
+    Number(match[1]) * 3 +
+    Number(match[2] || 0);
+
+  if (outs < 1) {
+    showStatus("0以外の投球回を入力してください。", true);
+    return;
+  }
+
+  addRecord("IP", { outs });
+
+  showStatus("投球回を追加しました。");
+});
+
+// ============================
+// 成績計算
+// ============================
+
+function calculate() {
+  const c = {
+    PA: 0,
+    AB: 0,
+    H: 0,
+    K: 0,
+    BB: 0,
+    HBP: 0,
+    HR: 0,
+    ER: 0,
+    R: 0,
+    E: 0,
+    FC: 0,
+    SF: 0,
+    SH: 0,
+    WP: 0,
+    BK: 0,
+    PK: 0,
+    OUTS: 0,
+    IP_EXTRA_OUTS: 0
+  };
+
+  for (const record of records) {
+    const r = record.result;
+
+    // 打者との対戦として数える結果
+    const plateAppearanceResults = [
+      "OUT", "K", "BB", "HBP",
+      "1B", "2B", "3B", "HR",
+      "E", "FC", "SF", "SH"
+    ];
+
+    if (plateAppearanceResults.includes(r)) {
+      c.PA++;
+    }
+
+    // 打数に含める結果
+    const atBatResults = [
+      "OUT", "K", "1B", "2B", "3B",
+      "HR", "E", "FC"
+    ];
+
+    if (atBatResults.includes(r)) {
+      c.AB++;
+    }
+
+    if (["1B", "2B", "3B", "HR"].includes(r)) {
+      c.H++;
+    }
+
+    switch (r) {
+      case "K":
+        c.K++;
+        c.OUTS++;
+        break;
+
+      case "OUT":
+        c.OUTS++;
+        break;
+
+      case "SF":
+      case "SH":
+        c.OUTS++;
+        break;
+
+      case "PK":
+        c.PK++;
+        c.OUTS++;
+        break;
+
+      case "BB":
+        c.BB++;
+        break;
+
+      case "HBP":
+        c.HBP++;
+        break;
+
+      case "HR":
+        c.HR++;
+        break;
+
+      case "ER":
+        c.ER++;
+        break;
+
+      case "R":
+        c.R++;
+        break;
+
+      case "E":
+        c.E++;
+        break;
+
+      case "FC":
+        c.FC++;
+        break;
+
+      case "SF":
+        c.SF++;
+        break;
+
+      case "SH":
+        c.SH++;
+        break;
+
+      case "WP":
+        c.WP++;
+        break;
+
+      case "BK":
+        c.BK++;
+        break;
+
+      case "IP":
+        c.IP_EXTRA_OUTS += record.outs || 0;
+        break;
+    }
+  }
+
+  // 自動計算したアウトと直接追加した投球回を合算
+  c.TOTAL_OUTS = c.OUTS + c.IP_EXTRA_OUTS;
+
+  const innings = c.TOTAL_OUTS / 3;
+
+  // 防御率 = 自責点 × 9 ÷ 投球回
+  const era = innings > 0
+    ? c.ER * 9 / innings
+    : null;
+
+  // WHIP = (被安打 + 与四球) ÷ 投球回
+  // 日本の一般的なWHIP計算では死球を含めない
+  const whip = innings > 0
+    ? (c.H + c.BB) / innings
+    : null;
+
+  return {
+    c,
+    era,
+    whip
+  };
+}
+
+// ============================
+// 表示
+// ============================
+
+function formatRate(value) {
+  return value === null
+    ? "—"
+    : value.toFixed(2);
+}
+
+function formatIP(outs) {
+  return `${Math.floor(outs / 3)}.${outs % 3}`;
+}
+
+function formatTime(value) {
+  if (!value) return "日時なし";
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return String(value);
+  }
+
+  return date.toLocaleString("ja-JP");
+}
+
+function render() {
+  const { c, era, whip } = calculate();
+
+  document.getElementById("era").textContent =
+    formatRate(era);
+
+  document.getElementById("whip").textContent =
+    formatRate(whip);
+
+  document.getElementById("strikeouts").textContent =
+    c.K;
+
+  document.getElementById("ip").textContent =
+    formatIP(c.TOTAL_OUTS);
+
+  const items = [
+    ["対戦打者数", c.PA],
+    ["打数", c.AB],
+    ["被安打", c.H],
+    ["被本塁打", c.HR],
+    ["奪三振", c.K],
+    ["与四球", c.BB],
+    ["与死球", c.HBP],
+    ["自責点", c.ER],
+    ["失点", c.R],
+    ["失策出塁", c.E],
+    ["野選出塁", c.FC],
+    ["犠牲フライ", c.SF],
+    ["犠牲バント", c.SH],
+    ["暴投", c.WP],
+    ["ボーク", c.BK],
+    ["牽制アウト", c.PK],
+    ["投球アウト数", c.TOTAL_OUTS]
+  ];
+
+  const counts = document.getElementById("counts");
+  counts.replaceChildren();
+
+  for (const [label, value] of items) {
+    const row = document.createElement("div");
+    row.className = "count-row";
+
+    const left = document.createElement("span");
+    left.textContent = label;
+
+    const right = document.createElement("span");
+    right.textContent = value;
+
+    row.append(left, right);
+    counts.appendChild(row);
+  }
+
+  const history = document.getElementById("history");
+  history.replaceChildren();
+
+  if (records.length === 0) {
+    const li = document.createElement("li");
+    li.textContent = "まだ記録がありません。";
+    history.appendChild(li);
+  } else {
+    records.forEach((record, index) => {
+      const li = document.createElement("li");
+      const info = document.createElement("div");
+      const title = document.createElement("strong");
+      const time = document.createElement("small");
+      const del = document.createElement("button");
+
+      let extra = "";
+
+      if (record.result === "IP") {
+        extra = `（${formatIP(record.outs || 0)}回追加）`;
+      }
+
+      title.textContent =
+        `${index + 1}. ${names[record.result]}${extra}`;
+
+      time.textContent = formatTime(record.time);
+
+      del.textContent = "削除";
+      del.type = "button";
+
+      del.addEventListener("click", () => {
+        records.splice(index, 1);
+        render();
+      });
+
+      info.append(title, time);
+      li.append(info, del);
+
+      // 最新の記録を上に表示
+      history.prepend(li);
+    });
+  }
+
+  // 変更のたびに自動保存
+  saveLocal();
+}
+
+// ============================
+// 履歴操作
+// ============================
+
+document.getElementById("undo").addEventListener("click", () => {
+  if (records.length === 0) return;
+
+  records.pop();
+  render();
+
+  showStatus("最後の記録を取り消しました。");
+});
+
+document.getElementById("reset").addEventListener("click", () => {
+  if (records.length === 0) return;
+
+  if (confirm("すべての記録を削除しますか？")) {
+    records = [];
+    render();
+
+    showStatus("すべての記録を削除しました。");
+  }
+});
+
+// ============================
+// CSV保存
+// ============================
+
+function csvEscape(value) {
+  return '"' +
+    String(value ?? "").replace(/"/g, '""') +
+    '"';
+}
+
+document.getElementById("export").addEventListener("click", () => {
+  if (records.length === 0) {
+    showStatus("保存する記録がありません。", true);
+    return;
+  }
+
+  const rows = [
+    [
+      "結果コード",
+      "結果",
+      "投球回追加アウト数",
+      "記録日時"
+    ],
+    ...records.map(record => [
+      record.result,
+      names[record.result],
+      record.outs ?? "",
+      record.time
+    ])
+  ];
+
+  const csv = "\uFEFF" +
+    rows
+      .map(row => row.map(csvEscape).join(","))
+      .join("\r\n");
+
+  const blob = new Blob(
+    [csv],
+    { type: "text/csv;charset=utf-8;" }
+  );
+
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+
+  a.href = url;
+  a.download = "投手成績記録.csv";
+
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+
+  URL.revokeObjectURL(url);
+
+  showStatus("CSVを保存しました。");
+});
+
+// ============================
+// CSV読み込み
+// ============================
+
+function parseCSV(text) {
+  text = text.replace(/^\uFEFF/, "");
+
+  const rows = [];
+
+  let row = [];
+  let field = "";
+  let inQuotes = false;
+
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+
+    if (inQuotes) {
+      if (ch === '"') {
+        if (text[i + 1] === '"') {
+          field += '"';
+          i++;
+        } else {
+          inQuotes = false;
+        }
+      } else {
+        field += ch;
+      }
+    } else {
+      if (ch === '"' && field === "") {
+        inQuotes = true;
+      } else if (ch === ",") {
+        row.push(field);
+        field = "";
+      } else if (ch === "\n") {
+        row.push(field);
+        rows.push(row);
+
+        row = [];
+        field = "";
+      } else if (ch !== "\r") {
+        field += ch;
+      }
+    }
+  }
+
+  if (inQuotes) {
+    throw new Error(
+      "CSVの引用符が正しく閉じられていません。"
+    );
+  }
+
+  if (field !== "" || row.length > 0) {
+    row.push(field);
+    rows.push(row);
+  }
+
+  return rows.filter(row =>
+    row.some(value => value.trim() !== "")
+  );
+}
+
+document.getElementById("csvFile").addEventListener(
+  "change",
+  async event => {
+    const file = event.target.files[0];
+
+    if (!file) return;
+
+    try {
+      const buffer = await file.arrayBuffer();
+
+      let text = new TextDecoder("utf-8").decode(buffer);
+
+      // UTF-8で文字化けした場合はShift_JISを試す
+      if (text.includes("\uFFFD")) {
+        text = new TextDecoder("shift_jis").decode(buffer);
+      }
+
+      const rows = parseCSV(text);
+
+      if (rows.length < 2) {
+        throw new Error("CSVに記録がありません。");
+      }
+
+      const headers = rows[0].map(value => value.trim());
+
+      const resultIndex = headers.findIndex(value =>
+        ["結果コード", "result", "resultCode"].includes(value)
+      );
+
+      const nameIndex = headers.findIndex(value =>
+        ["結果", "結果名"].includes(value)
+      );
+
+      const outsIndex = headers.findIndex(value =>
+        ["投球回追加アウト数", "outs"].includes(value)
+      );
+
+      const timeIndex = headers.findIndex(value =>
+        ["記録日時", "日時", "time"].includes(value)
+      );
+
+      if (resultIndex === -1 && nameIndex === -1) {
+        throw new Error(
+          "「結果コード」または「結果」列が必要です。"
+        );
+      }
+
+      const imported = [];
+
+      for (let i = 1; i < rows.length; i++) {
+        const values = rows[i];
+
+        let result = resultIndex >= 0
+          ? (values[resultIndex] || "").trim()
+          : "";
+
+        // 結果コードがなければ日本語の結果名から判定
+        if (!validResults.has(result) && nameIndex >= 0) {
+          const name = (values[nameIndex] || "").trim();
+
+          const found = Object.entries(names).find(
+            ([code, label]) =>
+              label === name || code === name
+          );
+
+          if (found) {
+            result = found[0];
+          }
+        }
+
+        if (!validResults.has(result)) {
+          throw new Error(
+            `${i + 1}行目の結果を認識できません。`
+          );
+        }
+
+        const outs = outsIndex >= 0
+          ? Number(values[outsIndex] || 0)
+          : 0;
+
+        if (
+          result === "IP" &&
+          (!Number.isInteger(outs) || outs < 1)
+        ) {
+          throw new Error(
+            `${i + 1}行目の投球回データが不正です。`
+          );
+        }
+
+        imported.push({
+          result,
+          ...(result === "IP" ? { outs } : {}),
+          time: timeIndex >= 0
+            ? (
+                (values[timeIndex] || "").trim() ||
+                new Date().toISOString()
+              )
+            : new Date().toISOString()
+        });
+      }
+
+      if (imported.length === 0) {
+        throw new Error("読み込める記録がありません。");
+      }
+
+      if (!confirm(
+        `${imported.length}件の記録を読み込みます。\n` +
+        "現在の記録は置き換えられます。続けますか？"
+      )) {
+        return;
+      }
+
+      records = imported;
+
+      render();
+
+      showStatus(
+        `${records.length}件の記録を読み込みました。`
+      );
+
+    } catch (error) {
+      showStatus(
+        error.message || "CSVの読み込みに失敗しました。",
+        true
+      );
+    } finally {
+      event.target.value = "";
+    }
+  }
+);
+
+// ============================
+// 起動時に前回の記録を復元
+// ============================
+
+loadLocal();
+render();
+
+</script>
 </body>
 </html>
